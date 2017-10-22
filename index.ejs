@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<script src="./satellite/dist/satellite.js"></script>
+    <script src="./3js_resources/three.js"></script>
+    <script src="./3js_resources/Projector.js"></script>
+    <script src="./3js_resources/CanvasRenderer.js"></script>
+	<title></title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <style>
+        body {
+            background-color: #000000;
+            margin: 0px;
+            overflow: hidden;
+        }
+
+        a {
+            color:#0078ff;
+        }
+    </style>
+</head>
+<body>
+	<script>
+		var norad = '42734'
+	    var tleArray = ["1 42734U 98067MP  17271.37578549  .00053290  00000-0  67532-3 0  9991", "2 42734  51.6373 241.7621 0007335 317.3911  42.6512 15.58902816 19367"];
+	    var satname = 'Ex-Alta';
+	    var sat_latitudeStr = '';
+	    var sat_longitudeStr = '';
+	    var sat_altitude = 0;
+	    
+	    setInterval(sat, 1000);
+	    
+	    function sat(){
+	        
+	        // Initialize a satellite record
+	        var satrec = satellite.twoline2satrec(tleArray[0], tleArray[1]);
+	        
+	        //  Or you can use a JavaScript Date
+	        var positionAndVelocity = satellite.propagate(satrec, new Date());
+	        
+	        // The position_velocity result is a key-value pair of ECI coordinates.
+	        // These are the base results from which all other coordinates are derived.
+	        var positionEci = positionAndVelocity.position,
+	            velocityEci = positionAndVelocity.velocity;
+	        
+	        var deg2rad = Math.PI/180;
+	        // Set the Observer at 122.03 West by 36.96 North, in RADIANS
+	        var observerGd = {
+	            longitude: -122.0308 * deg2rad,
+	            latitude: 36.9613422 * deg2rad,
+	            height: 0.370
+	        };
+	        
+	        // You will need GMST for some of the coordinate taransforms.
+	        // http://en.wikipedia.org/wiki/Sidereal_time#Definition
+	        var gmst = satellite.gstimeFromDate(new Date());
+	        
+	        // You can get ECF, Geodetic, Look Angles, and Doppler Factor.
+	        var positionEcf   = satellite.eciToEcf(positionEci, gmst),
+	            observerEcf   = satellite.geodeticToEcf(observerGd),
+	            positionGd    = satellite.eciToGeodetic(positionEci, gmst),
+	            lookAngles    = satellite.ecfToLookAngles(observerGd, positionEcf);
+	            // dopplerFactor = satellite.dopplerFactor(observerCoordsEcf, positionEcf, velocityEcf);
+	        
+	        // The coordinates are all stored in key-value pairs.
+	        // ECI and ECF are accessed by `x`, `y`, `z` properties.
+	        var satelliteX = positionEci.x,
+	            satelliteY = positionEci.y,
+	            satelliteZ = positionEci.z;
+	        
+	        // Look Angles may be accessed by `azimuth`, `elevation`, `range_sat` properties.
+	        var azimuth   = lookAngles.azimuth,
+	            elevation = lookAngles.elevation,
+	            rangeSat  = lookAngles.rangeSat;
+	        
+	        // Geodetic coords are accessed via `longitude`, `latitude`, `height`.
+	        var longitude = positionGd.longitude,
+	            latitude  = positionGd.latitude,
+	            altitude    = positionGd.height;
+	        
+	        //  Convert the RADIANS to DEGREES for pretty printing (appends "N", "S", "E", "W", etc).
+	        sat_longitudeStr = satellite.degreesLong(longitude),
+	           sat_latitudeStr  = satellite.degreesLat(latitude);
+	            
+	        //console.log(sat_longitudeStr + " " + sat_latitudeStr + " " + sat_altitude + " " + azimuth);
+	    
+	    }
+	</script>
+    <script src="./3js_resources/satellite_scene.js" type="text/javascript"></script>
+</body>
+</html>
