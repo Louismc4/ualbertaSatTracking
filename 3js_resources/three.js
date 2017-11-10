@@ -43760,7 +43760,7 @@
 			console.warn( 'THREE.ImageUtils.loadTexture has been deprecated. Use THREE.TextureLoader() instead.' );
 
 			var loader = new TextureLoader();
-			loader.setCrossOrigin( this.crossOrigin );
+			loader.setCrossOrigin( 'Anonymous' );
 
 			var texture = loader.load( url, onLoad, undefined, onError );
 
